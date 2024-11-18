@@ -79,11 +79,11 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     }
 
 
-//    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-//        log.info("扩展消息转换器");
-//        MappingJackson2CborHttpMessageConverter converter =new MappingJackson2CborHttpMessageConverter();
-//        converter.setObjectMapper(new JacksonObjectMapper());
-//        converters.add(0,converter);
-//
-//    }
+    /*@Override
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        log.info("扩展消息转换器");
+        MappingJackson2CborHttpMessageConverter converter = new MappingJackson2CborHttpMessageConverter();
+        converter.setObjectMapper(new JacksonObjectMapper());
+        converters.add(0, converter);
+    }*/
 }
