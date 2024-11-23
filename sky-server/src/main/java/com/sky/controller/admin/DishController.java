@@ -28,8 +28,8 @@ public class DishController {
     private DishService dishService;
     /**
      * 新增菜品
-     * @param dishDTO
-     * @return
+     * @param dishDTO 菜品对象
+     * @return 成功、失败
      */
     @PostMapping
     @ApiOperation("新增菜品")
@@ -43,7 +43,7 @@ public class DishController {
 
     /**
      *菜品分类查询
-     * @return
+     * @return 菜品对象列表
      */
     @GetMapping("/page")
     @ApiOperation("菜品分类查询")
@@ -56,8 +56,8 @@ public class DishController {
 
     /**
      * 菜品批量删除
-     * @param ids
-     * @return
+     * @param ids 要删除的菜品id集合
+     * @return 成功、失败
      */
     @DeleteMapping
     @ApiOperation("菜品批量删除")
@@ -69,8 +69,8 @@ public class DishController {
 
     /**
      * 根据id查询菜品
-     * @param id
-     * @return
+     * @param id 菜品id
+     * @return 菜品对象信息
      */
     @GetMapping("/{id}")
     @ApiOperation("根据id查询菜品")
@@ -78,5 +78,18 @@ public class DishController {
         log.info("根据id查询菜品：{}",id);
         DishVO dishVO = dishService.getByIdWithFlavor(id);
         return Result.success(dishVO);
+    }
+
+    /**
+     * 修改菜品
+     * @param dishDTO 菜品对象
+     * @return 成功/失败
+     */
+    @PutMapping
+    @ApiOperation("修改菜品")
+    public Result Update(@RequestBody DishDTO dishDTO){
+        log.info("修改菜品：{}",dishDTO);
+        dishService.updateWithFlavor(dishDTO);
+        return Result.success();
     }
 }
