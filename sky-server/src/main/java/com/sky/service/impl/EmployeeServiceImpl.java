@@ -19,6 +19,7 @@ import com.sky.mapper.EmployeeMapper;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.EmployeeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
@@ -188,13 +190,17 @@ public class EmployeeServiceImpl implements EmployeeService {
             //旧密码错误
             throw new PasswordErrorException(MessageConstant.PASSWORD_BEFORE);
         }
-        if (oldPassword.equals(dbPassword)){
+        else {
+            String oldPassword1 = employeeUpdateDTO.getNewPassword();
+            oldPassword1 = DigestUtils.md5DigestAsHex(oldPassword1.getBytes()).trim();
+            employeeUpdateDTO.setNewPassword(oldPassword1);
             //更新密码
             Employee employee1 = Employee.builder()
                     .password(employeeUpdateDTO.getNewPassword())
                     .id(Long.valueOf(employeeUpdateDTO.getEmpId()))
                     .build();
-            employeeMapper.update(employee);
+            log.info("新密码：{}",employee1.getPassword());
+            employeeMapper.update(employee1);
         }
     }
 }

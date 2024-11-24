@@ -175,10 +175,15 @@ public class DishServiceImpl implements DishService {
                 .build();
         //更新菜品信息
         dishMapper.update(dish);
+        //如果是禁用菜品需要将关联的套餐一起禁用
         if (status == StatusConstant.DISABLE){
+            //创建的菜品id集合
             List<Long> dishIds = new ArrayList<>();
+            //放入菜品id
             dishIds.add(id);
+            //获取关联的套餐id集合
             List<Long> setmealIds = setmealDishMapper.getsetmealIdsByDishIds(dishIds);
+            //如果套擦id不为空，循环禁用套餐
             if (setmealIds != null && setmealIds.size()>0){
                 for (Long setmealId : setmealIds) {
                     Setmeal setmeal = Setmeal.builder()
@@ -188,8 +193,19 @@ public class DishServiceImpl implements DishService {
                     SetmealMapper.update(setmeal);
                 }
             }
-
         }
+    }
 
+    /**
+     * 根据分类id查询套餐
+     * @param categoryId
+     * @return
+     */
+    public List<Dish> list(Long categoryId) {
+        Dish dish = Dish.builder()
+                .categoryId(categoryId)
+                .status(StatusConstant.ENABLE)
+                .build();
+        return dishMapper.list(dish);
     }
 }
