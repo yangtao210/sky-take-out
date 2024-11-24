@@ -7,6 +7,7 @@ import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.dto.SetmealDTO;
+import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.entity.Setmeal;
@@ -20,6 +21,7 @@ import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.service.SetmealService;
 import com.sky.vo.DishVO;
+import com.sky.vo.SetmealVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,5 +65,22 @@ public class SetmealServiceImpl implements SetmealService {
         log.info("套餐菜品关联数据：{}",setmealDishList);
         //将套餐关联菜品数据批量插入数据库
         setmealDishMapper.insertBatch(setmealDishList);
+    }
+
+    /**
+     * 套餐分页查询
+     * @param setmealPageQueryDTO 套餐分页对象
+     * @return
+     */
+    public PageResult pageQuery(SetmealPageQueryDTO setmealPageQueryDTO) {
+        //取出分页数据
+        int pageNum = setmealPageQueryDTO.getPage();
+        int pageSize = setmealPageQueryDTO.getPageSize();
+        //调用分页方法
+        PageHelper.startPage(pageNum,pageSize);
+        //查询数据
+        Page<SetmealVO> page = setmealMapper.pageQuery(setmealPageQueryDTO);
+        //将分页数据和套餐数据封装到返回数据中
+        return new PageResult(page.getTotal(),page.getResult());
     }
 }
