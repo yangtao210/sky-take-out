@@ -25,8 +25,7 @@ public interface SetmealMapper {
      * @param setmeal
      */
     @AutoFill(OperationType.UPDATE)
-    static void update(Setmeal setmeal) {
-    }
+    void update(Setmeal setmeal);
 
     /**
      * 新增套餐数据
@@ -55,4 +54,5 @@ public interface SetmealMapper {
      */
     @Delete("delete from setmeal where id=#{setmealId} ")
     void deleteById(Long setmealId);
+
 }

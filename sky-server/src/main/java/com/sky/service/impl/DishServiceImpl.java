@@ -190,7 +190,7 @@ public class DishServiceImpl implements DishService {
                             .id(setmealId)
                             .status(StatusConstant.DISABLE)
                             .build();
-                    SetmealMapper.update(setmeal);
+                    setmealMapper.update(setmeal);
                 }
             }
         }
