@@ -8,18 +8,26 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.Setmeal;
+import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
+import com.sky.result.Result;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +41,8 @@ public class DishServiceImpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private SetmealMapper setmealMapper;
     /**
      * 新增菜品
      * @param dishDTO
@@ -104,5 +114,82 @@ public class DishServiceImpl implements DishService {
             dishFlavorMapper.deleteByshId(id);
         }
         //删除菜品关联的口味数据
+    }
+
+    /**
+     * 根据id查询菜品
+     * @return
+     */
+    public DishVO getByIdWithFlavor(Long id) {
+        //根据id查询菜品数据
+        Dish dish = dishMapper.getById(id);
+        //根据菜品id查询口味数据
+        List<DishFlavor> dishFlavors = dishFlavorMapper.getByDishId(id);
+        //将查询到的信息封装到DishVO
+        //创建DishVo对象
+        DishVO dishVO = new DishVO();
+        //将彩品数据拷贝到dishVO对象
+        BeanUtils.copyProperties(dish,dishVO);
+        //将菜品口味信息插入到dishVO对象
+        dishVO.setFlavors(dishFlavors);
+        return dishVO;
+    }
+
+    /**
+     * 修改菜品信息
+     * @param dishDTO
+     */
+    public void updateWithFlavor(DishDTO dishDTO) {
+        //修改菜品基本信息
+        //创建菜品对象
+        Dish dish = new Dish();
+        //将传入的菜品信息拷入对象
+        BeanUtils.copyProperties(dishDTO,dish);
+        //执行更新方法
+        dishMapper.update(dish);
+        //删除口味数据
+        dishFlavorMapper.deleteByshId(dishDTO.getId());
+        //重新插入口味数据
+        List<DishFlavor> dishFlavors = dishDTO.getFlavors();
+        if (dishFlavors != null && dishFlavors.size() > 0) {
+            // 遍历口味数据
+            dishFlavors.forEach(dishFlavor -> {
+                // 设置dishFlavor的dishId属性为传入数据的id
+                dishFlavor.setDishId(dishDTO.getId());
+            });
+            // 将口味批量插入到数据库中
+            dishFlavorMapper.insertBatch(dishFlavors);
+        }
+    }
+
+    /**
+     * 修改菜品状态
+     * @param status 菜品状态信息
+     * @param id 菜品id
+     */
+    public void updateStatus(Integer status, Long id) {
+        //使用Dish类的builder方法构建一个菜品对象
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+        //更新菜品信息
+        dishMapper.update(dish);
+        if (status == StatusConstant.DISABLE){
+            List<Long> dishIds = new ArrayList<>();
+            dishIds.add(id);
+            List<Long> setmealIds = setmealDishMapper.getsetmealIdsByDishIds(dishIds);
+            if (setmealIds != null && setmealIds.size()>0){
+                for (Long setmealId : setmealIds) {
+                    Setmeal setmeal = Setmeal.builder()
+                            .id(setmealId)
+                            .status(StatusConstant.DISABLE)
+                            .build();
+                    SetmealMapper.update(setmeal);
+                }
+            }
+
+        }
+
     }
 }

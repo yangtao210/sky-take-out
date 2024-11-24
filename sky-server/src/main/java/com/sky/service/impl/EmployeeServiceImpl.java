@@ -10,6 +10,7 @@ import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
+import com.sky.dto.EmployeeUpdateDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
@@ -164,5 +165,36 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.update(employee);
+    }
+
+    /**
+     * 修改密码
+     * @param employeeUpdateDTO 员工数据
+     */
+    public void updatePassword(EmployeeUpdateDTO employeeUpdateDTO) {
+        //1、根据用户名查询数据库中的数据
+        Employee employee = employeeMapper.getById(Long.valueOf(employeeUpdateDTO.getEmpId()));
+        //密码比对
+        // 对前端传过来的密码进行加密
+        String oldPassword = employeeUpdateDTO.getOldPassword();
+        oldPassword = DigestUtils.md5DigestAsHex(oldPassword.getBytes()).trim();
+        String dbPassword = employee.getPassword().trim();
+
+        // 打印十六进制表示
+        System.out.println("加密后的密码 (hex): " + bytesToHex(oldPassword.getBytes()));
+        System.out.println("数据库中的密码 (hex): " + bytesToHex(dbPassword.getBytes()));
+
+        if (!oldPassword.equals(dbPassword)) {
+            //旧密码错误
+            throw new PasswordErrorException(MessageConstant.PASSWORD_BEFORE);
+        }
+        if (oldPassword.equals(dbPassword)){
+            //更新密码
+            Employee employee1 = Employee.builder()
+                    .password(employeeUpdateDTO.getNewPassword())
+                    .id(Long.valueOf(employeeUpdateDTO.getEmpId()))
+                    .build();
+            employeeMapper.update(employee);
+        }
     }
 }

@@ -4,6 +4,7 @@ import com.sky.constant.JwtClaimsConstant;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
+import com.sky.dto.EmployeeUpdateDTO;
 import com.sky.entity.Employee;
 import com.sky.properties.JwtProperties;
 import com.sky.result.PageResult;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +35,6 @@ public class EmployeeController {
     private EmployeeService employeeService;
     @Autowired
     private JwtProperties jwtProperties;
-
     /**
      * 登录
      *
@@ -42,7 +43,7 @@ public class EmployeeController {
      */
     @PostMapping("/login")
     @ApiOperation(value = "员工登录")
-    public Result<EmployeeLoginVO> login(@RequestBody EmployeeLoginDTO employeeLoginDTO) {
+    public Result<EmployeeLoginVO> login(@RequestBody EmployeeLoginDTO employeeLoginDTO, HttpSession session) {
         log.info("员工登录：{}", employeeLoginDTO);
 
         Employee employee = employeeService.login(employeeLoginDTO);
@@ -61,7 +62,8 @@ public class EmployeeController {
                 .name(employee.getName())
                 .token(token)
                 .build();
-
+        session.setAttribute("employeeId", employee.getId());
+        log.info("员工id：{}",employee.getId());
         return Result.success(employeeLoginVO);
     }
 
@@ -101,6 +103,12 @@ public class EmployeeController {
         return Result.success(pageResult);
     }
 
+    /**
+     * 启用禁用员工账号
+     * @param status
+     * @param id
+     * @return
+     */
     @PostMapping("/status/{status}")
     @ApiOperation("启用禁用员工账号")
     public Result startOrStop(@PathVariable Integer status,Long id){
@@ -108,6 +116,12 @@ public class EmployeeController {
         employeeService.startOrStop(status,id);
         return null;
     }
+
+    /**
+     * 根据id查询员工信息
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     @ApiOperation("根据id查询员工信息")
     public Result<Employee> getById(@PathVariable Long id){
@@ -124,6 +138,23 @@ public class EmployeeController {
     public Result update(@RequestBody EmployeeDTO employeeDTO){
         log.info("修改员工信息：",employeeDTO);
         employeeService.update(employeeDTO);
+        return Result.success();
+    }
+
+    @PutMapping("/editPassword")
+    @ApiOperation("修改密码")
+    public Result updatePassword(@RequestBody EmployeeUpdateDTO employeeUpdateDTO, HttpSession session) {
+        //获取当前登录员工的id
+        Long employeeId = (Long) session.getAttribute("employeeId");
+        log.info("员工id:{}",employeeId);
+        if (employeeId == null) {
+            return Result.error("员工ID未找到");
+        }
+        // 获取当前员工ID
+        employeeUpdateDTO.setEmpId(Math.toIntExact(employeeId));
+        log.info("修改密码：{}", employeeUpdateDTO);
+        //修改密码方法
+        employeeService.updatePassword(employeeUpdateDTO);
         return Result.success();
     }
 }
