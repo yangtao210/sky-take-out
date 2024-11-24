@@ -53,7 +53,6 @@ public class SetmealServiceImpl implements SetmealService {
         BeanUtils.copyProperties(setmealDTO,setmeal);
         //将套餐数据插入数据库
         setmealMapper.insert(setmeal);
-
         //获取生成的套餐id
         Long setmealId = setmeal.getId();
         //创建对象集合存放套餐菜品关联信息
@@ -82,5 +81,27 @@ public class SetmealServiceImpl implements SetmealService {
         Page<SetmealVO> page = setmealMapper.pageQuery(setmealPageQueryDTO);
         //将分页数据和套餐数据封装到返回数据中
         return new PageResult(page.getTotal(),page.getResult());
+    }
+
+    /**
+     * 批量删除套餐
+     * @param ids 套餐id列表
+     */
+    @Transactional
+    public void deleteBatch(List<Long> ids) {
+        //遍历套餐id列表
+        ids.forEach(id->{
+            //根据id查询套餐
+            Setmeal setmeal = setmealMapper.getById(id);
+            //如果套餐处于起售中，不能删除
+            if (setmeal.getStatus()==StatusConstant.ENABLE){
+                //抛出不能删除异常
+                throw new DeletionNotAllowedException(MessageConstant.SETMEAL_ON_SALE);
+            }
+        });
+        ids.forEach(setmealId->{
+            setmealMapper.deleteById(setmealId);
+            setmealDishMapper.deleteBysetmealId(setmealId);
+        });
     }
 }
