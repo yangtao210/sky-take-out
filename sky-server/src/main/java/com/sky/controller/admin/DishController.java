@@ -96,8 +96,8 @@ public class DishController {
 
     /**
      * 修改菜品状态
-     * @param status
-     * @param id
+     * @param status 菜品状态
+     * @param id 菜品id
      * @return
      */
     @PostMapping("/status/{status}")
@@ -110,7 +110,7 @@ public class DishController {
 
     /**
      * 根据分类id查询菜品
-     * @return
+     * @return 菜品集合列表
      */
     @GetMapping("/list")
     @ApiOperation("根据分类id查询菜品")

@@ -23,4 +23,10 @@ public interface SetmealMapper {
     @AutoFill(OperationType.UPDATE)
     static void update(Setmeal setmeal) {
     }
+
+    /**
+     * 新增套餐数据
+     * @param setmeal 套餐对象
+     */
+    void insert(Setmeal setmeal);
 }
