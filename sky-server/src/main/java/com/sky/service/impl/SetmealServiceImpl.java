@@ -6,9 +6,11 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.exception.SetmealEnableFailedException;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
@@ -16,6 +18,7 @@ import com.sky.result.PageResult;
 import com.sky.service.SetmealService;
 import com.sky.vo.SetmealVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -145,5 +148,35 @@ public class SetmealServiceImpl implements SetmealService {
         log.info("套餐菜品关联数据：{}",setmealDishList);
         //将套餐关联菜品数据批量插入数据库
         setmealDishMapper.insertBatch(setmealDishList);
+    }
+
+    /**
+     * 修改套餐你状态
+     * @param status
+     * @param id
+     */
+    public void updateStatus(Integer status, Long id) {
+        //如果启用套餐，检查套餐下的菜品是否为启用状态
+        if (status == StatusConstant.ENABLE){
+            //根据套餐id查询菜品
+            List<Dish> dishList = dishMapper.getBySetmealId(id);
+            //菜品列表不为空则循环遍历
+            if (dishList != null && dishList.size()>0){
+                dishList.forEach(dish->{
+                    //菜品状态为禁售则抛出异常
+                    if (dish.getStatus()==StatusConstant.DISABLE){
+                        throw new SetmealEnableFailedException(MessageConstant.SETMEAL_ENABLE_FAILED);
+                    }
+                });
+            }
+        }
+        //创建套餐对象
+        Setmeal setmeal = Setmeal.builder()
+                .id(id)
+                .status(status)
+                .build();
+        log.info("套餐对象：{}",setmeal);
+        //跟新套餐对象状态信息
+        setmealMapper.update(setmeal);
     }
 }
